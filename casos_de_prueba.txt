@@ -1,0 +1,87 @@
+﻿Informe casos de prueba:
+
+
+Conjunto de casos 1 
+
+
+Interpretación de un BCD de 4 bytes consiste simplemente en tomar los caracteres numéricos y asignarles el signo al resultado según su último nibble:
+
+
+Algunos casos a considerar con sus resultados pueden ser:
+
+
+12345A -> 12345
+12345B -> -12345
+1234567A -> 1234567
+1A -> 1
+2D -> -2 
+9999999C -> 9999999
+
+
+Casos bordes:
+Insertar una cadena con una cantidad de caracteres mayor a 8 es un error 
+Insertar una cadena vacía es un error
+Insertar una letra es un error
+Insertar una cadena con solo caracteres numéricos es un error
+Insertar una cadena que no tenga el carácter alfabético al final es un error
+Una cadena que tenga un carácter una cantidad x de números y luego otro carácter no debe ser tomado: por ejemplo 1234A124 es un input invalido
+
+
+Todos estos errores deben ser redireccionados al menu principal !
+
+
+Conjunto de casos 2
+
+
+Interpretación de un Binario de punto fijo de 32 bits
+
+
+1000 -> 8
+100001010100110010 -> 136498
+11111111111111111111111111111111 -> -1
+11111111111111101000000000110010 -> -98254
+ 1111111111111111111111111111111 -> 2147483647
+C-> -2147483648
+
+
+
+
+Casos Borde:
+
+
+Insertar una cadena vacía
+Insertar una cadena con más de 32 caracteres
+Insertar una cadena que tenga algún carácter debe mostrar un error
+Insertar una cadena que tenga algun numero diferente a 1 o 0 da un error
+
+
+
+
+
+
+Conjunto de pruebas 3 
+Insertar un número en base 10 el cual se va almacenar como un BCD de 4 bytes y dar la configuración binaria, octal o su configuración en base 4
+
+
+Algunos casos
+
+
+1 -> 1A -> 11010, 122, 32 
+-1 -> 1B -> 11011, 123, 33
+1234 -> 1234A ->  10010001101001010,102031022, 221512
+-3344 -> 3344B -> 110011010001001011, 303101023, 632113
+
+
+Casos bordes
+Devuelve un error insertar una cadena vacía
+Devuelve error usar una cadena con letras
+No se pueden ingresar elementos que superen el almacenaje lógico
+
+
+Casos de pruebas 4 
+
+
+Para este conjunto de pruebas se pueden ingresar los resultados de la prueba 2 (deben coincidir los elementos en base 2) 
+
+
+https://wims.univ-cotedazur.fr/wims/wims.cgi
