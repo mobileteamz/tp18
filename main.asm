@@ -10,11 +10,20 @@ extern	puts
 %include "dec_to_bfp/dec_a_bfp.asm"
 
 section	.data
-	msg_welcome				db		'========================================================',10, 'Bienvenido, elija el formato con el que desea trabajar:', 10,10, '1. Si quiere la configuracion hexadecimal numeros BCD de 4 bytes y convertirlo a Decimal', 10, '2. Si quiere ingresar la configuracion binaria de un binario de punto fijo (BFP) con signo de 32 bits',10, '3. Si quiere ingresar el numero en base 10 y convertir a BCD en Base 2,4 u 8',10,'4. Si quiere ingresar un numero en base 10 y convetirlo a binario de punto fijo con signo (BPF) en Base 2,4 u 8 ',10,10,'========================================================',10,0	
+	msg_welcome				db		'========================================================',10, 'Bienvenido, elija el formato con el que desea trabajar:', 10,10, '1. Si quiere la configuracion hexadecimal numeros BCD de 4 bytes y convertirlo a Decimal', 10, '2. Si quiere ingresar la configuracion binaria de un binario de punto fijo (BFP) con signo de 32 bits',10, '3. Si quiere ingresar el numero en base 10 y convertir a BCD',10,'4. Si quiere ingresar un numero en base 10 y convetirlo a binario de punto fijo con signo (BPF) en Base 2,4 u 8 ',10,10,'========================================================',10,0	
 	msjErrorInput       	db  	"Los datos ingresados son inválidos.  Intente nuevamente."	
 	continuar				db 		'Por favor, ingrese el numero '	
 	msg_invalido 			db 		'La opcion que ingreso no es valida!!! Por favor, vuelva a ingresar:',10, 0
 	formatInputFilCol		db		"%hi",0
+
+msg:
+  db      `\033[2J\033[H`
+msglen    equ $ - msg
+
+  ; bits    64
+  ; default rel
+
+
 
 section .bss
 	name 					resb 	16
@@ -28,6 +37,11 @@ section .text
 	mov		rsi, 5
 
 main:
+
+	mov     eax,1
+  	mov     edi,eax
+  	lea     rsi,[msg]
+
 	mov		rdi,msg_welcome
 	sub		rsp,8
 	call	printf
@@ -45,6 +59,13 @@ main:
 	sub		rsp,8
 	call	sscanf
 	add		rsp,8
+
+	; ; clean_screen()
+	mov     eax,1
+	mov     edi,eax
+	lea     rsi,[msg]
+	mov     edx,msglen
+	syscall
 
 	cmp		word[userInputString],1
 	je		user_chose_election_1

@@ -6,27 +6,29 @@ extern	puts
 
 section	.data
 	bcd_to_dec_msg_welcome				db		'Bienvenido, por favor ingrese un numero en formato BCD buen hombre: ', 0	
-	msg_response						db		'El numero ingresado (expresado en formato decimal es): %i ', 10,0
-	msg_response_negativo				db		'El numero ingresado (expresado en formato decimal es): -%i ', 10,0
-	inputFormat							db		"%li", 0
+	msg_response						db		'El numero ingresado (expresado en formato decimal es): %s',10,0
+	msg_response_negativo				db		'El numero ingresado (expresado en formato decimal es): -%s',10,0
+	inputFormat							db		"%i", 0
 	es_negativo							db 		'es negativo'
 	sigue								db 		'el programa sigue'
 	_bcd_to_dec_msg_invalido 			db 		'El numero ingresado no es valido. Por favor, vuelva a ingresar',10,0
+	msg_error							db 		'El numero ingresado es invalido! Por favor, ingrese otro numero',10,0
+
+	msg_largo							db 		'largo: %d',10,0
+	msg_debug							db 		'%c'
+	stringSalida						db		'        ',0
+	letrasValidas						db 		'ABCDEF123456789'
+
 
 section .bss
 	stringIngresadoUsuario	resb 	4
 	numero					resd	1
-	signo					resb	1	; P = Positivo, N = Negativo
-
-	digito_1				resb	4
-	digito_2				resb	4
-	digito_3				resb	4
-	digito_4				resb	4
+	validacion				resd	1
+	inputStringLength		resb	4	
 
 section .text
 	global main
 
-	mov		rsi, 5
 
 main_bcd_to_dec:
 	mov		rdi, bcd_to_dec_msg_welcome
@@ -39,104 +41,97 @@ main_bcd_to_dec:
     call    gets    
 	add		rsp,8
 
-	; User input formatting
-	mov     rdi, stringIngresadoUsuario 	; Todo el input del usuario (entero)
-    mov     rsi, inputFormat 			; "%hi%hi%hi" osea, string a int
-	mov		rdx, numero			 		; aca guarda el resultado
-	sub		rsp,8
-	call	sscanf
-	add		rsp,8
-
-	; jmp 	_VALREG_bcd_to_dec
-
-	; busco el ultimo caracter (para determinar el signo)
-	mov		byte[signo], 'P'	; inicializamos en Positivo
-	mov 	eax, stringIngresadoUsuario
-	mov		ebx, 0
-
-_buscar_signo:
-	cmp 	byte[eax+ebx], 'B' 		; Indicador de negativo en formato BCD	
-	je		_setear_numero_negativo 
-
-	cmp 	byte[eax+ebx], 'D' 		; Indicador de negativo en formato BCD	
-	je		_setear_numero_negativo 
-
-	cmp 	ebx, 3
-	je		_conseguir_digitos
-
+_calcular_largo_bcd_to_dec:
+	sub		ebx, ebx
+_continuar_calculando:
+	cmp 	byte [stringIngresadoUsuario+ebx], 0
+	je		_terminar_calculo_largor
+	
 	add		ebx, 1
-	jmp		_buscar_signo
+	jmp		_continuar_calculando
 
-_conseguir_digitos:
-
-	; consigo el primer digito
-	mov		edx, 0
-	mov 	eax, [numero]
-	mov		ebx, 100
-	div 	ebx 
-	mov 	[digito_1], eax ; resto en EDX y cociente en EAX
-
-	; 2do digito 
-	mov 	eax, edx ; resto en EDX y cociente en EAX
- 	mov		edx, 0
-	mov		ebx, 10
-	div 	ebx
-	mov 	[digito_2], eax 
-
-	; 3er digito
-	mov 	[digito_3], edx 
-
-	mov 	eax, [digito_1]
-	mov		ebx, 256
-	imul 	eax, ebx
-	mov		[digito_1], eax
-
-	mov 	eax, [digito_2] 
-	mov		ebx, 16
-	imul 	eax, ebx
-	mov		[digito_2], eax
-
-	mov		eax, 0
-	add		eax, [digito_1]
-	add		eax, [digito_2]
-	add		eax, [digito_3]
-
-	; Print variable
-	cmp 	byte[signo], 'N'
-	je 		imprimir_numero_negativo
+_terminar_calculo_largor:
+	mov		[inputStringLength], ebx
 	
-	mov		rdi, msg_response
-	jmp		imprimir_numero
-	
-imprimir_numero_negativo:
-	mov		rdi, msg_response_negativo
+	sub		rsp,8	
+    call    VALREG 
+    add		rsp,8
+    cmp 	byte[validacion], 'S'
+    je		_continuar
+	jmp 	_mostrarError
 
-imprimir_numero:
-	mov		esi, eax
+ret
+
+VALREG:
+	mov byte[validacion], 'N'
+
+	cmp byte [inputStringLength], 8
+	jge fin_Validacion
+
+	cmp byte [inputStringLength], 0
+	je fin_Validacion
+
+
+	sub		rsp,8	
+    call 	validarDigitosIngresados
+    add		rsp,8
+	cmp 	byte [validacion], 'N'
+	jge 	fin_Validacion
+	
+
+	mov byte[validacion], 'S'
+
+fin_Validacion:
+ret
+
+_mostrarError:
+	mov		rdi, msg_error
 	sub		rsp,8
 	call	printf
 	add		rsp,8
-	jmp 	_userInputString_exit
+	jmp 	main_bcd_to_dec
+ret
 
-_setear_numero_negativo:	
-	mov		[signo], byte 'N'
-	jmp 	_conseguir_digitos
-	ret 
+validarDigitosIngresados:
+	mov		byte [validacion], 'S'
+ret
 
-_VALREG_bcd_to_dec:
-	; cmp rax, 1
-	je	_bcd_to_dec_invalido
-	ret
+_continuar:
+	; Copio los strings
+	mov 	rcx, [inputStringLength]
+	dec 	rcx
+	mov 	rsi, stringIngresadoUsuario
+	mov 	rdi, stringSalida	
+	repe movsb
 
-_bcd_to_dec_invalido:
-	mov		rdi, _bcd_to_dec_msg_invalido
-	sub		rsp, 8
+
+_detectar_negativo:
+	mov 	ebx, [inputStringLength]
+	dec 	ebx
+	cmp 	byte [stringIngresadoUsuario+ebx], 'B'
+	je 		_print_es_negativo
+
+	cmp 	byte [stringIngresadoUsuario+ebx], 'D'
+	je 		_print_es_negativo
+
+	mov		rdi, msg_response
+	mov 	rsi, stringSalida
+	sub		rsp,8
 	call	printf
-	add		rsp, 8
-	jmp		main_bcd_to_dec
+	add		rsp,8
+	jmp 	_exit_bcd_to_dec
+	
+_print_es_negativo:	
+	mov		rdi, msg_response_negativo
+	mov 	rsi, stringSalida
+	sub		rsp,8
+	call	printf
+	add		rsp,8
+	jmp 	_exit_bcd_to_dec
 	ret
+	
+_exit_bcd_to_dec:
+	jmp main
+ret
 
-_userInputString_exit:
-	mov eax, 1
-	int 0x80
-	ret
+

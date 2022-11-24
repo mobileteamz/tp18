@@ -5,130 +5,125 @@ extern 	gets
 extern	puts
 
 section	.data
-	_dec_to_bcd_msg_welcome				db		'Bienvenido, por favor ingrese un numero en formato decimal: ', 0	
-	_dec_to_bcd_msg_response			db		'El numero ingresado (expresado en formato BCD es): %lX ', 0 ; %b = binario lx = hexadecimal
-	_dec_to_bcd_inputFormat				db		"%li", 0
-	_dec_to_bcd_msg_elija_formato		db		'Por favor elija el formato de salida:  1) binario 2) Base 4 3) base 8 4) Hexadecimal:',10, 0
-	_bcd_positivo						db 		'A',10,0
-	_bcd_negativo						db 		'D',10,0
+	dec_to_bcd_msg_welcome						db		'Bienvenido, por favor ingrese un dec_to_bcd_numero en formato decimal: ', 0	
+	dec_to_bcd_msg_response						db		'El dec_to_bcd_numero ingresado (expresado en formato BCD es): %iA',10,0
+	dec_to_bcd_main_msg_response_negativo		db		'El dec_to_bcd_numero ingresado (expresado en formato BCD es): %iB',10,0
+	dec_to_bcd_main_inputFormat					db		"%d", 0
+	dec_to_bcd_msg_error						db 		'El dec_to_bcd_numero ingresado es invalido! Por favor, ingrese otro dec_to_bcd_numero',10,0
+	dec_to_bcd_inputFormat						db		"%d", 0
+	dec_to_bcd_numero_letrasValidas				db 		'ABCDEF123456789'
+
 
 section .bss
-	_dec_to_bcd_stringIngresadoUsuario	resb 	4
-	_dec_to_bcd_numero					resd	1
-
-	_dec_to_bcd_digito_1				resb	4
-	_dec_to_bcd_digito_2				resb	4
-	_dec_to_bcd_digito_3				resb	4
-	_dec_to_bcd_digito_4				resb	4
-	_dec_to_bcd_signo					resd	1	
+	dec_to_bcd_stringIngresadoUsuario				resb 	4
+	dec_to_bcd_numero								resd	1
+	dec_to_bcd_validacion							resd	1
+	dec_to_bcd_inputStringLength					resb	4	
 
 section .text
 	global main
 
-	mov		rsi, 5
 
-_dec_to_bcd_main:
-	mov		rdi, _dec_to_bcd_msg_welcome
+ _dec_to_bcd_main:
+	mov		rdi, dec_to_bcd_msg_welcome
 	sub		rsp,8
 	call	printf
 	add		rsp,8
 
-	mov		rdi, _dec_to_bcd_stringIngresadoUsuario	
+    mov		rdi, dec_to_bcd_stringIngresadoUsuario	
 	sub		rsp,8	
     call    gets    
 	add		rsp,8
 
-	; User input formatting
-	mov     rdi, _dec_to_bcd_stringIngresadoUsuario 	; Todo el input del usuario (entero)
-    mov     rsi, _dec_to_bcd_inputFormat 				; "%li" osea, string a int
-	mov		rdx, _dec_to_bcd_numero			 			; aca guarda el resultado
+_calcular_largo_dec_to_bcd:
+	sub		ebx, ebx
+_continuar_calculando_dec_to_bcd:
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], 0
+	je		_terminar_calculo_largor_dec_to_bcd
+	
+	add		ebx, 1
+	jmp		_continuar_calculando_dec_to_bcd
+
+_terminar_calculo_largor_dec_to_bcd:
+	mov		[dec_to_bcd_inputStringLength], ebx
+	
+	sub		rsp,8	
+    call    VALREG_dec_to_bcd 
+    add		rsp,8
+    
+    cmp 	byte[dec_to_bcd_validacion], 'S'
+    je		_continuar_dec_to_bcd
+	jmp 	_mostrarError_dec_to_bcd
+
+ret
+
+VALREG_dec_to_bcd:
+	mov byte[dec_to_bcd_validacion], 'N'
+
+	cmp byte [dec_to_bcd_inputStringLength], 8
+	jge fin_Validacion_dec_to_bcd
+
+	cmp byte [dec_to_bcd_inputStringLength], 0
+	je fin_Validacion_dec_to_bcd
+
+
+	sub		rsp,8	
+    call 	validarDigitosIngresados_dec_to_bcd
+    add		rsp,8
+	cmp 	byte [dec_to_bcd_validacion], 'N'
+	jge 	fin_Validacion_dec_to_bcd
+	
+
+	mov byte[dec_to_bcd_validacion], 'S'
+
+fin_Validacion_dec_to_bcd:
+ret
+
+_mostrarError_dec_to_bcd:
+	mov		rdi, dec_to_bcd_msg_error
+	sub		rsp,8
+	call	printf
+	add		rsp,8
+	jmp 	main
+ret
+
+validarDigitosIngresados_dec_to_bcd:
+	mov		byte [dec_to_bcd_validacion], 'S'
+ret
+
+_continuar_dec_to_bcd:
+	mov     rdi, dec_to_bcd_stringIngresadoUsuario 	; Todo el input del usuario (entero)
+    mov     rsi, dec_to_bcd_inputFormat 				; "%li" osea, string a int
+	mov		rdx, dec_to_bcd_numero			 			; aca guarda el resultado
 	sub		rsp,8
 	call	sscanf
 	add		rsp,8
-	mov		eax, [_dec_to_bcd_numero]
-
-
-	jmp		_fin_conversion_binario
 	
+	mov		eax, [dec_to_bcd_numero]
+	cmp	 	eax, 0
+	jl 		_print_es_negativo_dec_to_bcd
 
-_fin_conversion_binario:	
-	mov		ebx, [_dec_to_bcd_numero]
-	mov		rdi, _dec_to_bcd_msg_elija_formato
+	mov		rdi, dec_to_bcd_msg_response
+	mov 	rsi, [dec_to_bcd_numero]
 	sub		rsp,8
 	call	printf
 	add		rsp,8
-
-	mov		rdi, inputFormato	
-	sub		rsp,8	
-    call    gets    
-	add		rsp,8
-
-
-	cmp 	byte [inputFormato], '1'
-	je 		_dec_to_bcd_formato_binario
-
-	cmp 	byte [inputFormato], '2'
-	je 		_dec_to_bcd_formato_base_4
-
-	cmp 	byte [inputFormato], '3'
-	je 		_dec_to_bcd_formato_base_8
-
-	cmp 	byte [inputFormato], '4'
-	je 		_dec_to_bcd_formato_base_16
-
-_dec_to_bcd_formato_binario:
-	mov		rdi, msg_response_binario
-	mov		esi, [_dec_to_bcd_numero]	
-	sub		rsp,8
-	call	printf
-	add		rsp,8
-	jmp		_dec_to_bfp_number_exit
+	jmp 	_exit_dec_to_bcd
 	ret
-
-_dec_to_bcd_formato_base_4:
-	mov		rdi, msg_response_base_4
-	mov		esi, [_dec_to_bcd_numero]	
-	sub		rsp,8
-	call	printf
-	add		rsp,8
-	jmp		_dec_to_bfp_number_exit
-	ret
-
-_dec_to_bcd_formato_base_8:
-	mov		rdi, msg_response_base_8
-	mov		esi, [_dec_to_bcd_numero]	
-	sub		rsp,8
-	call	printf
-	add		rsp,8
-	jmp		_dec_to_bfp_number_exit
-	ret
-
-_dec_to_bcd_formato_base_16:
-	mov		rdi, _dec_to_bcd_msg_response
-	mov		esi, [_dec_to_bcd_numero]	
-	sub		rsp,8
-	call	printf
-	add		rsp,8
-
-	mov		eax, [_dec_to_bcd_numero]
-	cmp 	eax, 0
-	jg		_dec_to_bcd_es_positivo
-
-	; mov		rdi, _bcd_negativo
-	; sub		rsp,8
-	; call	printf
-	; add		rsp,8
-	jmp 	_dec_to_bcd_exit
 	
+_print_es_negativo_dec_to_bcd:	
+	mov 	ebx, [dec_to_bcd_numero]
+	imul 	ebx, ebx, -1
+	mov 	[dec_to_bcd_numero], ebx
 
-_dec_to_bcd_es_positivo:
-	mov		rdi, _bcd_positivo	
+	mov		rdi, dec_to_bcd_main_msg_response_negativo
+	mov 	rsi, [dec_to_bcd_numero]
 	sub		rsp,8
 	call	printf
 	add		rsp,8
-	ret
+	
+_exit_dec_to_bcd:
+	jmp main
+ret
 
-_dec_to_bcd_exit:
-	mov eax, 1
-	int 0x80
-	ret
+
