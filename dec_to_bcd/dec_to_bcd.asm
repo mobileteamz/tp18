@@ -24,7 +24,7 @@ section .text
 	global main
 
 
- _dec_to_bcd_main:
+ _dec_to_bcd_main:3
 	mov		rdi, dec_to_bcd_msg_welcome
 	sub		rsp,8
 	call	printf

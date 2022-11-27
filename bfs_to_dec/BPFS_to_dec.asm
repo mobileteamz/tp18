@@ -38,19 +38,6 @@ _bpfs_to_dec_main:
 	call	_calcular_largo
 	add		rsp,8
 
-
-	; mov		rdi, debug_largo
-	; mov		esi, [bpfs_to_dec_inputStringLength]
-	; sub		rsp,8
-	; call	printf
-	; add		rsp,8
-
-
-	; sub		rsp,8
-	; call 	VALREG_bpfs_to_dec
-	; add		rsp,8
-	; cmp		byte [bpfs_to_dec_validar], 'N'
-	; jmp		_ingreso_invalido
 	
 _bpfs_to_dec_continuar:
 	mov		cl, [bpfs_to_dec_inputStringLength]
