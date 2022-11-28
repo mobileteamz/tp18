@@ -6,12 +6,12 @@ extern	puts
 
 section	.data
 	dec_to_bcd_msg_welcome						db		'Bienvenido, por favor ingrese un dec_to_bcd_numero en formato decimal: ', 0	
-	dec_to_bcd_msg_response						db		'El dec_to_bcd_numero ingresado (expresado en formato BCD es): %iA',10,0
-	dec_to_bcd_main_msg_response_negativo		db		'El dec_to_bcd_numero ingresado (expresado en formato BCD es): %iB',10,0
+	dec_to_bcd_msg_response						db		'El numero ingresado (expresado en formato BCD es): %iA',10,0
+	dec_to_bcd_main_msg_response_negativo		db		'El numero ingresado (expresado en formato BCD es): %iB',10,0
 	dec_to_bcd_main_inputFormat					db		"%d", 0
-	dec_to_bcd_msg_error						db 		'El dec_to_bcd_numero ingresado es invalido! Por favor, ingrese otro dec_to_bcd_numero',10,0
+	dec_to_bcd_msg_error						db 		'El numero ingresado es invalido! Por favor, ingrese otro numero',10,0
 	dec_to_bcd_inputFormat						db		"%d", 0
-	dec_to_bcd_numero_letrasValidas				db 		'ABCDEF123456789'
+	dec_to_bcd_numero_letrasValidas				db 		'123456789'
 
 
 section .bss
@@ -58,7 +58,7 @@ _terminar_calculo_largor_dec_to_bcd:
 ret
 
 VALREG_dec_to_bcd:
-	mov byte[dec_to_bcd_validacion], 'N'
+	mov byte[dec_to_bcd_validacion], 'S'
 
 	cmp byte [dec_to_bcd_inputStringLength], 8
 	jge fin_Validacion_dec_to_bcd
@@ -70,6 +70,7 @@ VALREG_dec_to_bcd:
 	sub		rsp,8	
     call 	validarDigitosIngresados_dec_to_bcd
     add		rsp,8
+	
 	cmp 	byte [dec_to_bcd_validacion], 'N'
 	jge 	fin_Validacion_dec_to_bcd
 	
@@ -88,7 +89,45 @@ _mostrarError_dec_to_bcd:
 ret
 
 validarDigitosIngresados_dec_to_bcd:
-	mov		byte [dec_to_bcd_validacion], 'S'
+	mov 	rcx, [dec_to_bcd_inputStringLength]
+	xor 	ebx, ebx
+
+revisar_digitos_dec_to_bcd:
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '0'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '1'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '2'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '3'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '4'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '5'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '6'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '7'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '8'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '9'
+	je 		validacion_ok_dec_to_bcd
+
+	mov 	byte [dec_to_bcd_validacion], 'N'
+
+validacion_ok_dec_to_bcd:
+	inc 	ebx
+	loop	revisar_digitos_dec_to_bcd
 ret
 
 _continuar_dec_to_bcd:
