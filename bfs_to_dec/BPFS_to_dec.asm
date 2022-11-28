@@ -10,20 +10,22 @@ section	.data
 	bpfs_to_dec_main_msg_response_binario	db		'El numero es (binario): %b',10,0
 	bpfs_to_dec_msg_invalido 		db 		'El numero ingresado no es valido. Por favor, vuelva a ingresar',10,0
 
-	debug_largo 					db 		'El largo es: %i',10,0	
+	msg_debug_largo					db 		'El largo es: %d',10,0	
+	bpfs_to_dec_msg_error			db 		'El formato ingresado es invalido! Por favor, vuelva a ingresar',10,0	
 
 section .bss
+	bpfs_to_dec_validar      					resb 	1
 	bpfs_to_dec_main_stringIngresadoUsuario		resb 	32
 	bpfs_to_dec_inputStringLength				resb	2
 	bpfs_to_dec_main_resultado      			resb 	2
 
-	bpfs_to_dec_validar      					resb 	1
-
 section .text
 	global main
 
-	; Inicializaciones	
 _bpfs_to_dec_main:
+	; Inicializaciones
+
+	mov 	byte [bpfs_to_dec_validar], 'S'
 	mov		rdi, bpfs_to_dec_main_msg_welcome
 	sub		rsp,8
 	call	printf
@@ -38,6 +40,12 @@ _bpfs_to_dec_main:
 	call	_calcular_largo
 	add		rsp,8
 
+	sub 	rsp, 8
+	call 	bpfs_to_dec_VALREG
+	add 	rsp, 8
+
+	cmp 	byte [bpfs_to_dec_validar], 'N'
+	je 		_error_validacion
 	
 _bpfs_to_dec_continuar:
 	mov		cl, [bpfs_to_dec_inputStringLength]
@@ -69,13 +77,6 @@ _sumar_exponente:
 	mov		eax, [bpfs_to_dec_main_resultado]
 
 _imprimir_numeros_fin:
-
-	; mov		rdi, bpfs_to_dec_main_msg_response_binario
-	; mov		esi, [bpfs_to_dec_main_resultado]
-	; sub		rsp,8
-	; call	printf
-	; add		rsp,8
-
 	mov		rdi, bpfs_to_dec_main_msg_response
 	mov		esi, [bpfs_to_dec_main_resultado]
 	sub		rsp,8
@@ -83,28 +84,52 @@ _imprimir_numeros_fin:
 	add		rsp,8
 
 	jmp 	_bpfs_to_dec_exit
-	ret
+ret
 
-_calcular_largo:
-	xor		ebx, ebx
-_revisar_numero:	
+
+ _calcular_largo:
+ 	xor 	ebx, ebx
+ _revisar_numero:
+ 	cmp   	[bpfs_to_dec_main_stringIngresadoUsuario+ebx], byte 0
+ 	je 		_terminar
+ 	
+ 	inc 	ebx
+ 	loop 	_revisar_numero
+ _terminar:
+ 	mov		[bpfs_to_dec_inputStringLength], ebx
+ ret
+
+bpfs_to_dec_VALREG:
+	mov 	rcx, [bpfs_to_dec_inputStringLength]
+	xor 	ebx, ebx
+
+revisar_digitos:
 	cmp 	byte [bpfs_to_dec_main_stringIngresadoUsuario+ebx], '1'
-	je		_revisar_siguiente_digito
+	je 		validacion_ok
 
 	cmp 	byte [bpfs_to_dec_main_stringIngresadoUsuario+ebx], '0'
-	je		_revisar_siguiente_digito
+	je 		validacion_ok
 
-	mov		[bpfs_to_dec_inputStringLength], ebx
-	ret
+	mov 	byte [bpfs_to_dec_validar], 'N'
 
-_revisar_siguiente_digito:
-	add		ebx, 1
-	jmp		_revisar_numero
-	ret	
+validacion_ok:
+	inc 	ebx
+	loop	revisar_digitos
+ret
+
+_error_validacion:
+	mov		rdi, bpfs_to_dec_msg_error
+	sub		rsp,8
+	call	printf
+	add		rsp,8
+
+	jmp 	_bpfs_to_dec_main
+ret
+
 
 _bpfs_to_dec_exit:
 	jmp main
-	ret
+ret
 
 
 
