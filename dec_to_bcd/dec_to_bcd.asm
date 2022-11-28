@@ -5,7 +5,7 @@ extern 	gets
 extern	puts
 
 section	.data
-	dec_to_bcd_msg_welcome						db		'Bienvenido, por favor ingrese un dec_to_bcd_numero en formato decimal: ', 0	
+	dec_to_bcd_msg_welcome						db		'Bienvenido, por favor ingrese un numero en formato decimal: ', 0	
 	dec_to_bcd_msg_response						db		'El numero ingresado (expresado en formato BCD es): %iA',10,0
 	dec_to_bcd_main_msg_response_negativo		db		'El numero ingresado (expresado en formato BCD es): %iB',10,0
 	dec_to_bcd_main_inputFormat					db		"%d", 0
@@ -120,6 +120,9 @@ revisar_digitos_dec_to_bcd:
 	je 		validacion_ok_dec_to_bcd
 
 	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '9'
+	je 		validacion_ok_dec_to_bcd
+
+	cmp 	byte [dec_to_bcd_stringIngresadoUsuario+ebx], '-'
 	je 		validacion_ok_dec_to_bcd
 
 	mov 	byte [dec_to_bcd_validacion], 'N'
