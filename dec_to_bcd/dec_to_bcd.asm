@@ -58,26 +58,25 @@ _terminar_calculo_largor_dec_to_bcd:
 ret
 
 VALREG_dec_to_bcd:
-	mov byte[dec_to_bcd_validacion], 'S'
+	mov 	byte[dec_to_bcd_validacion], 'S'
 
-	cmp byte [dec_to_bcd_inputStringLength], 8
-	jge fin_Validacion_dec_to_bcd
+	cmp 	byte [dec_to_bcd_inputStringLength], 8
+	jge 	error_Validacion_dec_to_bcd
 
-	cmp byte [dec_to_bcd_inputStringLength], 0
-	je fin_Validacion_dec_to_bcd
+	cmp 	byte [dec_to_bcd_inputStringLength], 0
+	je 		error_Validacion_dec_to_bcd
 
 
 	sub		rsp,8	
     call 	validarDigitosIngresados_dec_to_bcd
     add		rsp,8
 	
-	cmp 	byte [dec_to_bcd_validacion], 'N'
+	cmp 	byte [dec_to_bcd_validacion], 'S'
 	jge 	fin_Validacion_dec_to_bcd
 	
-
-	mov byte[dec_to_bcd_validacion], 'S'
-
-fin_Validacion_dec_to_bcd:
+error_Validacion_dec_to_bcd:
+	mov 	byte[dec_to_bcd_validacion], 'N'
+fin_Validacion_dec_to_bcd:	
 ret
 
 _mostrarError_dec_to_bcd:
